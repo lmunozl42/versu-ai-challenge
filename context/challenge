@@ -1,0 +1,242 @@
+- **README** claro:
+    - Cómo arrancar (Docker)
+    - Decisiones de arquitectura / modelos.
+    - Herramientas de IA usadas
+    - Mejoras UX detectadas y justificación.
+    - Alcance: Qué cosas se deben revisar y qué cosas no se lograron para el deadline.
+    - Diagrama de arquitectura (puede ser un simple diagrama en Mermaid o imagen).
+    - Comentarios e indicaciones adicionales.
+
+---
+
+## 1. Contexto y Objetivo
+
+### Problema
+
+Las empresas necesitan monitorizar y analizar las interacciones que sus usuarios tienen con agentes de IA en distintos canales (chatbots web, WhatsApp, etc.), para medir calidad, uso y detectar áreas de mejora.
+
+### Objetivo de la prueba
+
+Construir un dashboard avanzado de "Conversaciones de IA" que permita:
+
+1. Conectarse a una API de IA (cualquiera, no importa la calidad de las respuestas, se puede buscar una free tier).
+2. Registrar y visualizar chats reales o simulados.
+3. Calcular métricas y mostrar gráficos con porcentajes clave.
+4. Navegar entre varias vistas mediante una sidebar.
+5. Detectar puntos de mejora de UX y documentarlos.
+6. **Soportar multi-tenancy** (varias organizaciones aisladas en la misma instancia).
+7. **Desplegar la aplicación en un IaaS con free tier usando Terraform.**
+8. **Incluir observabilidad con Grafana + Prometheus.**
+
+### Objetivo (para el candidato)
+
+La idea de esta prueba es que no la veas como una evaluación, aunque suene contra intuitivo. Se busca que la persona evaluada vea el deadline como la fecha límite impuesta por un cliente, que tiene la **necesidad** del producto. Por ende, entran a jugar factores importantísimos a nivel de negocio, como lo son la velocidad y priorización en base al entendimiento del cliente.
+
+Imagínate que el entregable va dirigido a un **Customer Success / Operations Analyst** (o Product Ops Manager) de una plataforma SaaS de chatbots de IA para e-commerce.
+
+- **Perfil del cliente**
+    - Suele ser alguien con experiencia tanto en producto como en datos: por ejemplo, un Customer Success Manager o un Data Analyst en un equipo de operaciones de IA.
+    - No es necesariamente desarrollador, pero entiende conceptos de métricas, dashboards y sabe interpretar gráficos para tomar decisiones.
+    - Necesita herramientas visuales claras, interactivas y fiables para informar a los equipos de producto y a los sellers sobre la salud y calidad de los agentes de IA.
+- **Necesidad que cubre**
+    - **Monitorizar el rendimiento** de las conversaciones de IA (volumen, tiempos de respuesta, satisfacción de usuarios).
+    - **Detectar rápidamente problemas**: conversaciones con baja puntuación, cuellos de botella en UX, anomalías en el flujo.
+    - **Tomar decisiones basadas en datos**: ajustar prompts, reasignar recursos de soporte, priorizar mejoras en el agente.
+    - **Comunicar resultados** internamente: generar informes periódicos para producto, ingeniería y ventas.
+
+### Disclaimer
+
+En la prueba se puede (se incentiva) utilizar todo tipo de herramientas IA (ChatGPT, Cursor, Claude Code, Copilot, etc.).
+
+---
+
+## 2. Alcance y Requisitos Generales
+
+- **Frontend**: React es el único requisito. Hay libertad para utilizar cualquier librería / framework necesario.
+- **Backend**: Dockerizado (Node.js, Django, lo que sea) con Dockerfile y docker-compose.
+- **Base de datos**: PostgreSQL (requerido). El esquema debe soportar multi-tenancy.
+- **Autenticación**: JWT con claims de organización (`org_id`). Debe haber al menos 2 organizaciones seed. Un usuario solo ve los datos de su organización.
+- **IA**: Conectar a cualquier API pública gratuita.
+- **Real-time**: WebSockets obligatorio para el chat (streaming token-by-token de la respuesta de la IA).
+- **Infraestructura**: Terraform + IaaS free tier + Grafana/Prometheus.
+
+---
+
+## 3. Vistas y Navegación (Sidebar)
+
+En la UI, implementar una **sidebar fija** con estas secciones:
+
+1. **Resumen**
+2. **Conversaciones**
+3. **Analytics**
+4. **Configuración**
+
+---
+
+### 3.1 Resumen
+
+- **KPI rápidos** (filtrados por organización del usuario autenticado):
+    - Total de conversaciones (hoy / semana / mes)
+    - % de conversaciones "satisfactorias" (basado en rating)
+    - Tiempo promedio de respuesta de la IA (segundos)
+- **Gráfico de tendencia**: líneas de volumen de chats por día.
+
+### 3.2 Conversaciones
+
+- **Tabla paginada** con:
+    - ID de conversación
+    - Fecha inicio
+    - Duración (segundos)
+    - Estado (Abierta/Cerrada)
+    - Rating promedio (1–5)
+- Filtros: rango de fechas, estado, rating mínimo, canal.
+- Botón para crear una nueva conversación.
+- **Real-time**: si otro tab/usuario de la misma organización crea una conversación, debe aparecer en la tabla sin refrescar.
+
+### 3.3 Chat
+
+- Al hacer clic en una conversación de "Conversaciones", abrir **detalle**:
+    - Historial completo de mensajes (usuario ↔ IA).
+    - Control para enviar un nuevo mensaje de prueba (input + botón "Enviar a IA"). El canal de esta conversación es "Web".
+    - **La respuesta de la IA debe aparecer en streaming (token por token) vía WebSockets.** No se acepta esperar la respuesta completa.
+    - Guardar mensaje y respuesta en backend.
+- Al abrir una nueva conversación (habiendo apretado el "botón para crear una nueva conversación"), crear una nueva conversación en el backend, y mostrar un panel similar al que se detalla en el punto anterior pero con el historial de mensajes vacío.
+- Permitir calificar la conversación (1-5) desde la vista de detalle.
+
+### 3.4 Analytics
+
+- **Distribución de ratings**: histograma de 1 a 5 (porcentaje de cada puntuación).
+- **Gráfico de pastel** con % de conversaciones por canal (Web, WhatsApp, Instagram) — canales son simulados/mockeados. Los chats que se respondan mediante la interfaz del frontend clasifican como "Web".
+- **Tabla Top 5 prompts** que generaron peor rating.
+
+### 3.5 Configuración
+
+- Ajustes de la conexión a la API de IA (clave, endpoint) → No editables, solo visualización.
+- Prompts: tener 4 hardcodeados y permitir seleccionar cuál ocupar para que la IA responda los mensajes. Dejar uno seleccionado por default. Esto permite que el agente vaya "cambiando de personalidad" (ej: un joven simpático, un viejo tradicional, un gringo que casi no sabe español, etc.).
+- Opcionalmente, un CRUD para añadir o eliminar prompts.
+- Detalles del Usuario (Nombre, email, foto, organización).
+
+### 3.6 Diseño UI/UX
+
+Utiliza la siguiente URL para visualizar cómo debiese quedar la interfaz: https://conversa-insights-dashboard.lovable.app/
+
+**IMPORTANTE**: Es un MockUp autogenerado, por lo que no debe seguirse exactamente al pie de la letra. La idea es que logres conseguir los mismos recursos y diseños (layout, tarjetas, sidebar, tablas, botones, labels, etc). Que te acerques lo más posible (mientras más parecido, suma más puntos). Sin embargo, debes omitir las pequeñas imperfecciones que tiene el mockup. Siempre tendrá mayor relevancia lo que sale en el enunciado por sobre el diseño. Se premia cualquier intervención o alteración que realices (con la debida justificación) para mejorar la UX/UI.
+
+Si decides que el diseño es muy feo, y quieres hacer una versión mucho mejor en UI, adelante, podría sumar puntos.
+
+---
+
+## 4. Consideraciones del Backend
+
+- En el backend, implementar un servicio que reciba el mensaje de usuario y:
+    1. Lo envíe a la API externa (p. ej. `POST https://api.openai.com/v1/chat/completions`).
+    2. Haga streaming de la respuesta vía WebSocket al frontend.
+    3. Una vez completa la respuesta, guarde el mensaje, prompt y la respuesta en la base de datos.
+- **Multi-tenancy**: Todas las queries deben estar scoped por `org_id`. Un usuario de la Org A jamás debe ver datos de la Org B.
+- Documentar en el README cómo configurar la clave/API key (archivo `.env`).
+
+---
+
+## 5. Infraestructura como Código (IaC) + Deploy
+
+Esta sección es **obligatoria**.
+
+### 5.1 Terraform
+
+Escribir archivos Terraform (o OpenTofu) que provisionen la aplicación en un IaaS con free tier. Opciones que quizás te suenen: Railway, Render, [Fly.io](http://Fly.io), AWS Free Tier (EC2 + RDS), Heroku, etc.
+
+El Terraform debe provisionar como mínimo:
+
+- El servicio de la aplicación (backend + frontend).
+- Una base de datos PostgreSQL gestionada (o equivalente).
+- Manejo de variables de entorno / secretos.
+
+### 5.2 Deploy funcional
+
+- Proveer una **URL funcional y desplegada** en el README.
+- La aplicación desplegada debe ser completamente funcional (login, chat, analytics, etc.).
+
+### 5.3 CI Pipeline
+
+- Incluir un pipeline de GitHub Actions que al menos:
+    - Ejecute linting.
+    - Construya la imagen Docker.
+    - Corra en cada push a `main`.
+- No se requiere auto-deploy, pero el pipeline debe pasar (badge verde).
+
+---
+
+## 6. Observabilidad — Grafana + Prometheus
+
+Agregar servicios de observabilidad al `docker-compose.yml`.
+
+### 6.1 Prometheus
+
+- Instrumentar el backend con métricas de Prometheus. Como mínimo:
+    - `http_requests_total` (counter, con labels de method, path, status_code)
+    - `http_request_duration_seconds` (histogram)
+    - `ws_active_connections` (gauge — conexiones WebSocket activas)
+    - `ai_api_request_duration_seconds` (histogram — latencia de la API de IA externa)
+- Exponer un endpoint `/metrics` en el backend.
+
+### 6.2 Grafana
+
+- Agregar Grafana como servicio en `docker-compose.yml`, accesible en `localhost:3000`.
+- **Provisioning automático** (vía archivos YAML + JSON, no configuración manual):
+    - Datasource de Prometheus pre-configurado.
+    - Al menos **un dashboard** pre-provisionado (archivo JSON) que muestre:
+        - Request rate (req/s)
+        - Latencia p95
+        - Tasa de errores (5xx)
+        - Latencia de la API de IA
+        - Conexiones WebSocket activas
+- Al hacer `docker-compose up`, Grafana debe estar listo con el dashboard visible sin intervención manual.
+
+---
+
+## 7. Requerimientos Funcionales (Resumen)
+
+1. **Autenticación** con JWT y multi-tenancy (org_id en claims).
+2. **Manejo de conversaciones y mensajes** con aislamiento por organización.
+3. **Streaming de respuestas** de IA vía WebSockets (token por token).
+4. **CRUDs necesarios.**
+5. **Calificación de conversaciones** (1–5) en la vista de detalle.
+6. **Frontend**: consumo de todos los endpoints, sidebar, vistas responsivas en la medida de lo posible.
+7. **Infraestructura**: Terraform + deploy funcional + CI pipeline.
+8. **Observabilidad**: Prometheus + Grafana con dashboard provisionado.
+9. **Testing mínimo**: Sin testing obligatorio.
+
+---
+
+## 8. Requerimientos No Funcionales
+
+- **Código limpio y comentarios donde sea complejo.**
+- **Dockerizado** (incluyendo Grafana y Prometheus).
+- **README** completo (ver checklist al inicio de este documento).
+- **Performance básica**: paginación en tablas.
+- **Seguridad básica**: datos aislados por organización, no exponer secretos en el repo.
+
+---
+
+## 9. Criterios de Evaluación
+
+| Criterio | Peso |
+| --- | --- |
+| Funcionalidad core (CRUD, chat, analytics) | 25% |
+| Multi-tenancy + WebSockets (streaming) | 20% |
+| Infraestructura (Terraform + deploy + CI) | 20% |
+| Observabilidad (Grafana + Prometheus) | 15% |
+| Calidad de código y arquitectura | 10% |
+| UX/UI (adherencia al diseño + mejoras propias) | 5% |
+| README y documentación | 5% |
+
+**IMPORTANTE — INNOVACIÓN**: Se premia cualquier mejora en UX/UI, accesibilidad, performance o arquitectura que se implemente, con su debida justificación en el README.
+
+---
+
+## 10. Entrega
+
+- Repositorio público (GitHub/GitLab) con todo el código.
+- README completo.
+- URL del deploy funcional.
+- Pipeline de CI pasando (badge verde en el repo).
