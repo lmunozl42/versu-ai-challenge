@@ -1,6 +1,17 @@
 # Secrets
 .env
 
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+.crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -21,3 +32,7 @@ frontend/.env
 # OS
 .DS_Store
 Thumbs.db
+
+# Local
+.claude/
+.claude/settings.local.json

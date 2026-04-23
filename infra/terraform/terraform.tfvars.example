@@ -1,0 +1,5 @@
+render_api_key  = "rnd_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+render_owner_id = "usr_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+github_repo_url = "https://github.com/lmunozl42/versu-ai-challenge"
+secret_key      = "cambia-esto-por-un-string-aleatorio-largo"
+groq_api_key    = "gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

@@ -4,13 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.api.analytics import router as analytics_router
-from app.api.auth import router as auth_router
-from app.api.conversations import router as conversations_router
-from app.api.prompts import router as prompts_router
-from app.api.ws import router as ws_router
-from app.db.seed import run_seed
-from app.db.session import AsyncSessionLocal
+from app.resources.analytics import router as analytics_router
+from app.resources.auth import router as auth_router
+from app.resources.conversations import router as conversations_router
+from app.resources.prompts import router as prompts_router
+from app.resources.ws import router as ws_router
+from app.infrastructure.seed import run_seed
+from app.infrastructure.session import AsyncSessionLocal
 
 
 @asynccontextmanager
@@ -30,14 +30,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-Instrumentator().instrument(app).expose(app)
-
 app.include_router(auth_router)
 app.include_router(conversations_router)
 app.include_router(prompts_router)
 app.include_router(analytics_router)
 app.include_router(ws_router)
 
+@app.on_event("startup")
+async def startup():
+    Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 @app.get("/health")
 async def health():

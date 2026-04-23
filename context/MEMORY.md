@@ -1,5 +1,7 @@
 # Context Index
 
-- [Plan Día 1 Mañana](plan_dia1_manana.md) — Scaffolding + DB + Auth: bloques, tareas y checklist
-- [Plan Día 1 Tarde + Día 2](plan_dia1_tarde_dia2.md) — APIs + Frontend + Infra: estado actual y pendientes
-- [Lógica de Negocio](business_logic.md) — Multi-tenancy, auth, conversaciones, métricas, WS, infra
+- [Day 1 AM](plan_day1_am.md) — Scaffolding, DB models, seed, JWT auth (✅ complete)
+- [Day 1 PM](plan_day1_pm.md) — Backend APIs + frontend 4 pages (⚠️ missing: date/channel filters, pagination, real-time verify)
+- [Day 2 AM](plan_day2_am.md) — Docker Compose, Prometheus, Grafana, CI, Terraform (⚠️ deploy + CI badge pending)
+- [Day 2 PM](plan_day2_pm.md) — Clean architecture + pending challenge items checklist
+- [Business Logic](business_logic_en.md) — Multi-tenancy, auth, conversations, analytics, WebSocket, infrastructure

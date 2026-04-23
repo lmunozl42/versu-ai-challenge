@@ -1,86 +1,52 @@
-import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useSettingsData } from "@/modules/settings/use_cases/useSettingsData";
+import {
+  OrgInfoCard,
+  UserInfoCard,
+  AIApiCard,
+  PromptCard,
+} from "@/modules/settings/components/SettingsCards";
 
 export default function SettingsPage() {
-  const { user } = useAuth();
-  const [showKey, setShowKey] = useState(false);
-
-  const groqKey = import.meta.env.VITE_GROQ_API_KEY_PREVIEW ?? "gsk_••••••••••••••••";
+  const { user, prompts, promptsLoading, setDefaultMut } = useSettingsData();
 
   return (
-    <div className="p-6 max-w-2xl">
-      <div className="mb-6">
+    <div className="p-6 max-w-3xl space-y-6">
+      <div>
         <h1 className="text-2xl font-bold">Configuración</h1>
-        <p className="text-muted-foreground text-sm">Información de tu organización y API</p>
+        <p className="text-muted-foreground text-sm">
+          Organización, cuenta y personalidades del agente de IA
+        </p>
       </div>
 
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Organización</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Row label="Nombre" value={user?.organization.name ?? ""} />
-            <Row label="Slug" value={user?.organization.slug ?? ""} />
-            <Row label="ID" value={user?.org_id ?? ""} mono />
-          </CardContent>
-        </Card>
+      <OrgInfoCard user={user} />
+      <UserInfoCard user={user} />
+      <AIApiCard />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Usuario</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Row label="Nombre" value={user?.name ?? ""} />
-            <Row label="Email" value={user?.email ?? ""} />
-            <Row label="ID" value={user?.id ?? ""} mono />
-          </CardContent>
-        </Card>
+      <div>
+        <div className="mb-3">
+          <h2 className="text-base font-semibold">Personalidades del agente</h2>
+          <p className="text-muted-foreground text-sm">
+            El prompt predeterminado se usa como system message en cada conversación.
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">API de IA</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Proveedor</span>
-              <Badge variant="secondary">Groq</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Modelo</span>
-              <span className="text-sm font-mono">llama-3.1-8b-instant</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">API Key</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-mono">
-                  {showKey ? groqKey : "gsk_••••••••••••••••"}
-                </span>
-                <button
-                  onClick={() => setShowKey((v) => !v)}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {promptsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {prompts.map((prompt) => (
+              <PromptCard
+                key={prompt.id}
+                prompt={prompt}
+                onSetDefault={() => setDefaultMut.mutate(prompt.id)}
+                isPending={setDefaultMut.isPending}
+              />
+            ))}
+          </div>
+        )}
       </div>
-    </div>
-  );
-}
-
-function Row({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={`text-sm ${mono ? "font-mono text-xs" : ""} truncate max-w-[60%] text-right`}>
-        {value}
-      </span>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { loginUser } from "@/infra/repositories/authRepository";
+import { useAuth } from "@/commons/AuthContext";
+import { Button } from "@/commons/components/ui/button";
+import { Input } from "@/commons/components/ui/input";
+import { Label } from "@/commons/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/commons/components/ui/card";
 
 export default function LoginPage() {
   const { setToken } = useAuth();
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const token = await login(email, password);
+      const token = await loginUser(email, password);
       setToken(token);
       navigate("/");
     } catch {

@@ -5,7 +5,9 @@
       "Bash(npm install *)",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(curl -s http://localhost:5173/)"
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(dir \"C:\\\\Users\\\\Vani\\\\Desktop\\\\versu-ai-challenge\\\\context\\\\challenge\")",
+      "Bash(cmd.exe *)"
     ]
   }
 }

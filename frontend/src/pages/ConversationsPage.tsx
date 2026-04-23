@@ -1,142 +1,81 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, MessageSquare } from "lucide-react";
-import { listConversations, createConversation, type Conversation } from "@/api/conversations";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-
-const CHANNEL_LABEL: Record<string, string> = {
-  web: "Web",
-  whatsapp: "WhatsApp",
-  instagram: "Instagram",
-};
-
-const CHANNEL_VARIANT: Record<string, "default" | "success" | "secondary"> = {
-  web: "default",
-  whatsapp: "success",
-  instagram: "secondary",
-};
-
-function StarRating({ rating }: { rating: number | null }) {
-  if (rating === null) return <span className="text-xs text-muted-foreground">Sin calificar</span>;
-  return (
-    <span className="text-sm">
-      {"★".repeat(rating)}
-      {"☆".repeat(5 - rating)}
-    </span>
-  );
-}
-
-function ConvRow({ conv, onClick }: { conv: Conversation; onClick: () => void }) {
-  const date = new Date(conv.created_at).toLocaleDateString("es-CL", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  return (
-    <div
-      onClick={onClick}
-      className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-0 transition-colors"
-    >
-      <div className="flex-shrink-0">
-        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-        </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-medium">Conversación</span>
-          <Badge variant={CHANNEL_VARIANT[conv.channel] ?? "outline"}>
-            {CHANNEL_LABEL[conv.channel]}
-          </Badge>
-          <Badge variant={conv.status === "open" ? "success" : "secondary"}>
-            {conv.status === "open" ? "Abierta" : "Cerrada"}
-          </Badge>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {conv.message_count} mensajes · {date}
-        </p>
-      </div>
-      <div className="flex-shrink-0 text-right">
-        <StarRating rating={conv.rating} />
-      </div>
-    </div>
-  );
-}
+import { Plus } from "lucide-react";
+import { useConversationsList } from "@/modules/conversations/use_cases/useConversationsList";
+import { ConversationsFilters } from "@/modules/conversations/components/ConversationsFilters";
+import { ConvRow } from "@/modules/conversations/components/ConvRow";
+import { Button } from "@/commons/components/ui/button";
+import { Card, CardContent } from "@/commons/components/ui/card";
 
 export default function ConversationsPage() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
-  const [filter, setFilter] = useState<"all" | "open" | "closed">("all");
-
-  const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ["conversations"],
-    queryFn: listConversations,
-    refetchInterval: 15_000,
-  });
-
-  const createMut = useMutation({
-    mutationFn: () => createConversation("web"),
-    onSuccess: (conv) => {
-      qc.invalidateQueries({ queryKey: ["conversations"] });
-      navigate(`/conversations/${conv.id}`);
-    },
-  });
-
-  const filtered = conversations.filter((c) =>
-    filter === "all" ? true : c.status === filter
-  );
+  const data = useConversationsList();
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Conversaciones</h1>
-          <p className="text-muted-foreground text-sm">{conversations.length} en total</p>
+          <p className="text-muted-foreground text-sm">
+            {data.filtered.length} de {data.conversations.length} conversaciones
+          </p>
         </div>
-        <Button onClick={() => createMut.mutate()} disabled={createMut.isPending}>
+        <Button onClick={() => data.createMut.mutate()} disabled={data.createMut.isPending}>
           <Plus className="h-4 w-4" />
           Nueva conversación
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-4">
-        {(["all", "open", "closed"] as const).map((f) => (
-          <Button
-            key={f}
-            variant={filter === f ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter(f)}
-          >
-            {f === "all" ? "Todas" : f === "open" ? "Abiertas" : "Cerradas"}
-          </Button>
-        ))}
-      </div>
+      <ConversationsFilters
+        statusFilter={data.statusFilter}
+        setStatusFilter={data.setStatusFilter}
+        minRating={data.minRating}
+        setMinRating={data.setMinRating}
+        maxRating={data.maxRating}
+        setMaxRating={data.setMaxRating}
+        dateFrom={data.dateFrom}
+        setDateFrom={data.setDateFrom}
+        dateTo={data.dateTo}
+        setDateTo={data.setDateTo}
+        hasActiveFilters={data.hasActiveFilters}
+        clearFilters={data.clearFilters}
+      />
 
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
+          {data.isLoading ? (
+            <div className="flex items-center justify-center py-16">
               <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <MessageSquare className="h-10 w-10 mb-3 opacity-30" />
-              <p className="text-sm">No hay conversaciones</p>
+          ) : data.filtered.length === 0 ? (
+            <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
+              No hay conversaciones con estos filtros
             </div>
           ) : (
-            filtered.map((conv) => (
-              <ConvRow
-                key={conv.id}
-                conv={conv}
-                onClick={() => navigate(`/conversations/${conv.id}`)}
-              />
-            ))
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">ID</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Fecha inicio</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Duración</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Estado</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Canal</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Mensajes</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Rating</th>
+                    <th className="text-right px-4 py-3 font-medium text-muted-foreground">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.filtered.map((conv) => (
+                    <ConvRow
+                      key={conv.id}
+                      conv={conv}
+                      onView={() => navigate(`/conversations/${conv.id}`)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardContent>
       </Card>

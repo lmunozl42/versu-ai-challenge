@@ -2,7 +2,7 @@ terraform {
   required_providers {
     render = {
       source  = "render-oss/render"
-      version = "~> 1.3"
+      version = "~> 1.8"
     }
   }
 }
@@ -36,7 +36,15 @@ resource "render_web_service" "backend" {
 
   env_vars = {
     DATABASE_URL = {
-      value = render_postgres.db.connection_string
+      value = replace(
+        replace(
+          render_postgres.db.connection_info.internal_connection_string,
+          "postgres://",
+          "postgresql+asyncpg://"
+        ),
+        "postgresql://",
+        "postgresql+asyncpg://"
+      )
     }
     SECRET_KEY = {
       value = var.secret_key
@@ -54,23 +62,17 @@ resource "render_web_service" "backend" {
 
 # --- Frontend (static site) ---
 resource "render_static_site" "frontend" {
-  name   = "versu-frontend"
-  region = "oregon"
-
-  runtime_source = {
-    native_runtime = {
-      repo_url         = var.github_repo_url
-      branch           = "main"
-      build_command    = "cd frontend && npm ci && npm run build"
-      publish_path     = "frontend/dist"
-      runtime          = "node"
-      runtime_version  = "20"
-    }
-  }
+  name          = "versu-frontend"
+  repo_url      = var.github_repo_url
+  branch        = "main"
+  build_command = "cd frontend && npm ci && npm run build"
+  publish_path  = "frontend/dist"
 
   env_vars = {
     VITE_API_URL = {
       value = render_web_service.backend.url
     }
   }
+
+  depends_on = [render_web_service.backend]
 }

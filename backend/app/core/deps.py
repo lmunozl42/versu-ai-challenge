@@ -1,12 +1,13 @@
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.core.security import decode_token
-from app.db.models import User
-from app.db.session import get_session
+from app.infrastructure.session import get_session
+from app.entities.user import User
+from app.repositories.user_repository import SQLUserRepository
 
 bearer = HTTPBearer()
 
@@ -20,10 +21,8 @@ async def get_current_user(
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    result = await session.execute(
-        select(User).where(User.id == user_id).options(selectinload(User.organization))
-    )
-    user = result.scalars().first()
+    repo = SQLUserRepository(session)
+    user = await repo.get_by_id(UUID(user_id))
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
