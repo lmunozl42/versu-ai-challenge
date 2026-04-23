@@ -34,6 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    const handler = () => setToken(null);
+    window.addEventListener("auth:unauthorized", handler);
+    return () => window.removeEventListener("auth:unauthorized", handler);
+  }, []);
+
+  useEffect(() => {
     if (!token) {
       setUser(null);
       setLoading(false);

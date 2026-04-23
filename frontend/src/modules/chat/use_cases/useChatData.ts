@@ -20,11 +20,16 @@ export function useChatData() {
 
   const userInitial = (user?.name ?? user?.email ?? "U")[0].toUpperCase();
 
-  const { data: conv, isLoading } = useQuery({
+  const { data: conv, isLoading, isError } = useQuery({
     queryKey: ["conversation", id],
     queryFn: () => getConversation(id!),
     enabled: !!id,
+    retry: false,
   });
+
+  useEffect(() => {
+    if (isError) navigate("/conversations");
+  }, [isError, navigate]);
 
   const [messages, setMessages] = useState<Partial<Message>[]>([]);
   const [input, setInput] = useState("");
@@ -72,6 +77,7 @@ export function useChatData() {
   return {
     conv,
     isLoading,
+    isError,
     messages,
     input,
     setInput,

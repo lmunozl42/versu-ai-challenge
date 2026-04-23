@@ -10,7 +10,7 @@ const CHANNEL_LABEL: Record<string, string> = {
   instagram: "Instagram",
 };
 
-function ChannelBadge({ channel }: { channel: string }) {
+export function ChannelBadge({ channel }: { channel: string }) {
   const classes: Record<string, string> = {
     web: "bg-blue-100 text-blue-800 border-blue-200",
     whatsapp: "bg-green-100 text-green-800 border-green-200",
@@ -28,7 +28,7 @@ function ChannelBadge({ channel }: { channel: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   if (status === "open") {
     return (
       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-zinc-900 text-white border-zinc-900">
@@ -39,7 +39,7 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="secondary">Cerrada</Badge>;
 }
 
-function StarRating({ rating }: { rating: number | null }) {
+export function StarRating({ rating }: { rating: number | null }) {
   if (rating === null) return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <span className="text-sm leading-none">
@@ -51,10 +51,7 @@ function StarRating({ rating }: { rating: number | null }) {
 
 export function ConvRow({ conv, onView }: { conv: Conversation; onView: () => void }) {
   return (
-    <tr
-      className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-      onClick={onView}
-    >
+    <tr className="border-b last:border-0 hover:bg-muted/30 transition-colors">
       <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
         {conv.id.slice(0, 8)}
       </td>
@@ -73,15 +70,7 @@ export function ConvRow({ conv, onView }: { conv: Conversation; onView: () => vo
         <StarRating rating={conv.rating} />
       </td>
       <td className="px-4 py-3 text-right">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={(e) => {
-            e.stopPropagation();
-            onView();
-          }}
-        >
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onView}>
           <Eye className="h-4 w-4" />
         </Button>
       </td>

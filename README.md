@@ -186,6 +186,18 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 **Qué:** El botón de texto "Ver" en la columna Acciones fue reemplazado por un ícono de ojo.  
 **Por qué:** Un botón de texto ocupa espacio horizontal considerable y escala mal cuando se agregan acciones adicionales. Las columnas de acciones basadas en íconos son un patrón estándar en tablas de datos: cada acción tiene un ícono pequeño con tooltip, manteniendo la tabla compacta y consistente sin importar cuántas acciones estén presentes. Esto hace el diseño extensible para acciones futuras (e.g. eliminar, exportar) sin rediseñar la columna.
 
+### 8. Paginación en la tabla de Conversaciones con selector de tamaño de página
+**Qué:** Se agregó paginación a la tabla de conversaciones con opciones de 10, 20 o 50 filas por página, mostrando el rango visible ("1–10 de 47") y navegación por páginas con elipsis inteligente.  
+**Por qué:** Renderizar todas las conversaciones sin paginar degrada el rendimiento percibido y hace difícil explorar la lista. La paginación mantiene la tabla manejable independientemente del volumen de datos, mientras que el selector de tamaño de página le da al analista control sobre la densidad de información según sus preferencias.
+
+### 9. Filtro por canal en la tabla de Conversaciones
+**Qué:** Se añadió un dropdown de filtrado por canal (Web, WhatsApp, Instagram) junto a los filtros existentes de estado, rating y fecha.  
+**Por qué:** El canal es una dimensión clave para segmentar conversaciones. Un analista que gestiona el canal de WhatsApp, por ejemplo, solo necesita ver ese subset. Sin este filtro tendría que revisar toda la tabla e identificar visualmente las filas relevantes.
+
+### 10. Flujo de cierre de conversación con confirmación y calificación
+**Qué:** El botón "Cerrar conversación" abre un diálogo de confirmación (SweetAlert2) antes de ejecutar el cierre. Al confirmar, una vez procesado el cierre, se abre automáticamente un segundo diálogo que invita a calificar la conversación con estrellas (1–5) con opción de omitir.  
+**Por qué:** Cerrar una conversación es una acción irreversible; sin confirmación es fácil hacerlo por accidente. Encadenar la calificación inmediatamente después del cierre —mientras la conversación está fresca— incrementa la tasa de calificaciones recibidas. Ambos diálogos respetan el sistema de diseño del proyecto para mantener la coherencia visual.
+
 ## Herramientas de IA utilizadas
 
 | Herramienta | Uso |
@@ -203,7 +215,9 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 | CRUD conversaciones + close + rate | ✅ |
 | Streaming IA token-a-token vía WebSocket | ✅ |
 | 4 vistas: Resumen, Conversaciones, Analytics, Configuración | ✅ |
-| Filtros en Conversaciones: estado, rating mín/máx, rango de fechas | ✅ |
+| Filtros en Conversaciones: estado, canal, rating mín/máx, rango de fechas | ✅ |
+| Paginación en tabla de Conversaciones con selector de tamaño de página | ✅ |
+| Flujo de cierre con confirmación y calificación vía diálogos | ✅ |
 | 4 personalidades de agente con set-default por org | ✅ |
 | Analytics: KPIs, volumen, distribución de canales, ratings, peores prompts | ✅ |
 | Prometheus + Grafana auto-provisionados (local) | ✅ |
@@ -216,8 +230,6 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 
 | Requisito | Notas |
 |-----------|-------|
-| Filtro por canal en Conversaciones | El filtrado por canal no fue implementado en el frontend; el dato existe en el modelo y en seed |
-| Paginación en tabla de Conversaciones | La tabla renderiza todos los resultados sin paginar |
 | Actualizaciones en tiempo real en la lista de Conversaciones | La lista usa polling cada 15 s; el broadcast WebSocket llega solo a clientes dentro de un chat activo |
 
 ## CI/CD
