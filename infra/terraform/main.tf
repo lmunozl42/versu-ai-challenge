@@ -76,7 +76,7 @@ resource "render_static_site" "frontend" {
   name          = "versu-frontend"
   repo_url      = var.github_repo_url
   branch        = "main"
-  build_command = "cd frontend && npm ci && npm run build"
+  build_command = "cd frontend && npm install && npm run build"
   publish_path  = "frontend/dist"
 
   env_vars = {
