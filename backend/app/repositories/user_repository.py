@@ -25,6 +25,8 @@ class SQLUserRepository(IUserRepository):
             id=orm.id,
             email=orm.email,
             name=orm.name,
+            role=orm.role,
+            puesto=orm.puesto,
             org_id=orm.org_id,
             hashed_password=orm.hashed_password,
             organization=org,

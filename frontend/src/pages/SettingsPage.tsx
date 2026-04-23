@@ -1,7 +1,6 @@
 import { useSettingsData } from "@/modules/settings/use_cases/useSettingsData";
 import {
   OrgInfoCard,
-  UserInfoCard,
   AIApiCard,
   PromptCard,
 } from "@/modules/settings/components/SettingsCards";
@@ -14,12 +13,11 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold">Configuración</h1>
         <p className="text-muted-foreground text-sm">
-          Organización, cuenta y personalidades del agente de IA
+          Organización y personalidades del agente de IA
         </p>
       </div>
 
       <OrgInfoCard user={user} />
-      <UserInfoCard user={user} />
       <AIApiCard />
 
       <div>

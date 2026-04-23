@@ -24,6 +24,8 @@ class UserOut(BaseModel):
     id: uuid.UUID
     email: str
     name: str
+    role: str
+    puesto: str | None
     org_id: uuid.UUID
     organization: OrgOut
 

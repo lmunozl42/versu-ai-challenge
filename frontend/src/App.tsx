@@ -8,6 +8,7 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import ConversationsPage from "@/pages/ConversationsPage";
 import ChatPage from "@/pages/ChatPage";
 import SettingsPage from "@/pages/SettingsPage";
+import ProfilePage from "@/pages/ProfilePage";
 
 const qc = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
@@ -26,6 +27,7 @@ export default function App() {
               <Route path="/conversations" element={<ConversationsPage />} />
               <Route path="/conversations/:id" element={<ChatPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

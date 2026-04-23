@@ -11,8 +11,23 @@ from app.infrastructure.models import Conversation, Message, Organization, Promp
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ORGS = [
-    {"name": "Acme Corp", "slug": "acme", "email": "admin@acme.com", "password": "acme123"},
-    {"name": "Globex Inc", "slug": "globex", "email": "admin@globex.com", "password": "globex123"},
+    {
+        "name": "Acme Corp",
+        "slug": "acme",
+        "users": [
+            {"email": "admin@acme.com", "password": "acme123", "name": "Ana García", "role": "Administrador", "puesto": "Customer Success Manager"},
+            {"email": "soporte@acme.com", "password": "acme123", "name": "Carlos Ruiz", "role": "Agente", "puesto": "Agente de Soporte"},
+            {"email": "analista@acme.com", "password": "acme123", "name": "María Torres", "role": "Analista", "puesto": "Analista de Datos"},
+        ],
+    },
+    {
+        "name": "Globex Inc",
+        "slug": "globex",
+        "users": [
+            {"email": "admin@globex.com", "password": "globex123", "name": "Pedro Soto", "role": "Administrador", "puesto": "Head of Customer Experience"},
+            {"email": "agente@globex.com", "password": "globex123", "name": "Lucía Mora", "role": "Agente", "puesto": "Especialista en Atención al Cliente"},
+        ],
+    },
 ]
 
 PROMPTS = [
@@ -69,31 +84,40 @@ AI_MESSAGES = [
 
 
 async def run_seed(session: AsyncSession) -> None:
-    existing = await session.execute(select(Organization).limit(1))
-    if existing.scalars().first():
-        return
-
     now = datetime.now(timezone.utc)
 
     for org_data in ORGS:
-        org = Organization(
-            id=uuid.uuid4(),
-            name=org_data["name"],
-            slug=org_data["slug"],
-            created_at=now,
-        )
-        session.add(org)
-        await session.flush()
+        result = await session.execute(select(Organization).where(Organization.slug == org_data["slug"]))
+        org = result.scalars().first()
 
-        user = User(
-            id=uuid.uuid4(),
-            email=org_data["email"],
-            hashed_password=pwd_context.hash(org_data["password"]),
-            name=f"Admin {org_data['name']}",
-            org_id=org.id,
-            created_at=now,
-        )
-        session.add(user)
+        if not org:
+            org = Organization(
+                id=uuid.uuid4(),
+                name=org_data["name"],
+                slug=org_data["slug"],
+                created_at=now,
+            )
+            session.add(org)
+            await session.flush()
+
+        for u in org_data["users"]:
+            result = await session.execute(select(User).where(User.email == u["email"]))
+            existing_user = result.scalars().first()
+
+            if existing_user:
+                existing_user.role = u["role"]
+                existing_user.puesto = u["puesto"]
+            else:
+                session.add(User(
+                    id=uuid.uuid4(),
+                    email=u["email"],
+                    hashed_password=pwd_context.hash(u["password"]),
+                    name=u["name"],
+                    role=u["role"],
+                    puesto=u["puesto"],
+                    org_id=org.id,
+                    created_at=now,
+                ))
 
         for prompt_data in PROMPTS:
             session.add(

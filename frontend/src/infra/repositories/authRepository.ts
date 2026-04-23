@@ -4,6 +4,8 @@ export interface UserOut {
   id: string;
   email: string;
   name: string;
+  role: string;
+  puesto: string | null;
   org_id: string;
   organization: { id: string; name: string; slug: string };
 }

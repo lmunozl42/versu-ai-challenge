@@ -104,10 +104,20 @@ curl http://localhost:8000/health   # {"status":"ok"}
 
 ## Credenciales demo
 
-| Org | Email | Password |
-|-----|-------|----------|
-| Acme Corp | admin@acme.com | acme123 |
-| Globex Inc | admin@globex.com | globex123 |
+**Acme Corp**
+
+| Nombre | Email | Password | Rol | Puesto |
+|--------|-------|----------|-----|--------|
+| Ana García | admin@acme.com | acme123 | Administrador | Customer Success Manager |
+| Carlos Ruiz | soporte@acme.com | acme123 | Agente | Agente de Soporte |
+| María Torres | analista@acme.com | acme123 | Analista | Analista de Datos |
+
+**Globex Inc**
+
+| Nombre | Email | Password | Rol | Puesto |
+|--------|-------|----------|-----|--------|
+| Pedro Soto | admin@globex.com | globex123 | Administrador | Head of Customer Experience |
+| Lucía Mora | agente@globex.com | globex123 | Agente | Especialista en Atención al Cliente |
 
 Cada org tiene datos completamente aislados: 20 conversaciones seed distribuidas en canales web/whatsapp/instagram con distintos ratings.
 
@@ -158,9 +168,9 @@ El dashboard de Grafana se provisiona automáticamente al levantar el contenedor
 
 Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con su justificación documentada.
 
-### 1. Navbar fija con nombre de org y botón de cierre de sesión
-**Qué:** Se agregó una navbar superior que muestra el nombre de la organización autenticada y un botón de logout visible.  
-**Por qué:** El mockup no incluía un mecanismo para cerrar sesión. Durante las pruebas no era claro cómo cambiar entre organizaciones o terminar una sesión. Una navbar fija mantiene la org actual siempre visible y ofrece una acción de logout consistente y fácil de encontrar — patrón estándar en dashboards SaaS.
+### 1. Navbar fija con nombre de org, avatar de usuario y menú de perfil
+**Qué:** Se agregó una navbar superior que muestra el nombre de la organización autenticada de forma persistente. A la derecha hay un avatar circular con la inicial del usuario que al hacer click despliega un menú con el nombre, email, acceso al perfil y la opción de cerrar sesión.  
+**Por qué:** El mockup no incluía un mecanismo para cerrar sesión ni información del usuario activo. El modelo de datos contempla múltiples usuarios por organización, por lo que es importante distinguir quién está autenticado en todo momento. El dropdown de avatar es el patrón estándar en productos SaaS multi-usuario: mantiene la interfaz limpia sin sacrificar accesibilidad al perfil ni al logout.
 
 ### 2. Selector de período en el gráfico de volumen (Hoy / Semana / Mes)
 **Qué:** El gráfico de volumen de conversaciones en Resumen ahora tiene tres vistas seleccionables: Hoy (por hora, 0–23h), Semana (últimos 7 días por nombre de día) y Mes (últimos 30 días).  
@@ -194,7 +204,11 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 **Qué:** Se añadió un dropdown de filtrado por canal (Web, WhatsApp, Instagram) junto a los filtros existentes de estado, rating y fecha.  
 **Por qué:** El canal es una dimensión clave para segmentar conversaciones. Un analista que gestiona el canal de WhatsApp, por ejemplo, solo necesita ver ese subset. Sin este filtro tendría que revisar toda la tabla e identificar visualmente las filas relevantes.
 
-### 10. Tooltip explicativo del cálculo de impacto en Analytics
+### 10. Menú de usuario en el navbar con dropdown de perfil
+**Qué:** El nombre de usuario y el botón de logout del navbar fueron reemplazados por un avatar circular con la inicial del usuario. Al hacer click se despliega un menú con el nombre, email y la opción de cerrar sesión. El nombre de la organización se muestra de forma persistente junto al avatar. La información de usuario fue removida de la página de Configuración, que ahora solo contiene datos de la organización y del agente de IA.  
+**Por qué:** El enunciado contempla que una organización puede tener múltiples usuarios. En ese modelo, los datos de perfil (nombre, email, ID de usuario) son información del usuario autenticado, no de la organización — mezclarlos en la pantalla de Configuración del dashboard genera confusión de responsabilidades. El dropdown en el navbar es el patrón estándar en SaaS multi-usuario: el perfil está siempre accesible pero no ocupa espacio en las vistas operativas.
+
+### 11. Tooltip explicativo del cálculo de impacto en Analytics
 **Qué:** La columna "Impacto" de la tabla Top 5 Prompts incluye un ícono de información (ℹ) que al hacer hover muestra un tooltip con la fórmula de cálculo: `(5 − rating promedio) × conversaciones`, y una descripción de su significado.  
 **Por qué:** Una métrica derivada sin explicación puede confundir o generar desconfianza en el analista. El tooltip contextualiza el número directamente en el punto de uso, sin requerir documentación externa ni sobrecargar la interfaz con texto permanente.
 
@@ -222,6 +236,7 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 | Filtros en Conversaciones: estado, canal, rating mín/máx, rango de fechas | ✅ |
 | Paginación en tabla de Conversaciones con selector de tamaño de página | ✅ |
 | Flujo de cierre con confirmación y calificación vía diálogos | ✅ |
+| Menú de usuario con dropdown en navbar (perfil + logout) | ✅ |
 | Tooltip explicativo del cálculo de impacto en tabla de Analytics | ✅ |
 | 4 personalidades de agente con set-default por org | ✅ |
 | Analytics: KPIs, volumen, distribución de canales, ratings, peores prompts | ✅ |
