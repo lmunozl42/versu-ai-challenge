@@ -21,13 +21,13 @@ export default function AnalyticsPage() {
       <div>
         <h1 className="text-2xl font-bold">Analytics</h1>
         <p className="text-muted-foreground text-sm">
-          Distribución de canales, ratings y rendimiento de prompts
+          Análisis detallado del rendimiento de las conversaciones
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChannelChart data={channelDistribution} />
         <RatingChart data={ratingDistribution} />
+        <ChannelChart data={channelDistribution} />
       </div>
 
       <WorstPromptsTable data={worstPrompts} />

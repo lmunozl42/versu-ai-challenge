@@ -194,7 +194,11 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 **Qué:** Se añadió un dropdown de filtrado por canal (Web, WhatsApp, Instagram) junto a los filtros existentes de estado, rating y fecha.  
 **Por qué:** El canal es una dimensión clave para segmentar conversaciones. Un analista que gestiona el canal de WhatsApp, por ejemplo, solo necesita ver ese subset. Sin este filtro tendría que revisar toda la tabla e identificar visualmente las filas relevantes.
 
-### 10. Flujo de cierre de conversación con confirmación y calificación
+### 10. Tooltip explicativo del cálculo de impacto en Analytics
+**Qué:** La columna "Impacto" de la tabla Top 5 Prompts incluye un ícono de información (ℹ) que al hacer hover muestra un tooltip con la fórmula de cálculo: `(5 − rating promedio) × conversaciones`, y una descripción de su significado.  
+**Por qué:** Una métrica derivada sin explicación puede confundir o generar desconfianza en el analista. El tooltip contextualiza el número directamente en el punto de uso, sin requerir documentación externa ni sobrecargar la interfaz con texto permanente.
+
+### 11. Flujo de cierre de conversación con confirmación y calificación
 **Qué:** El botón "Cerrar conversación" abre un diálogo de confirmación (SweetAlert2) antes de ejecutar el cierre. Al confirmar, una vez procesado el cierre, se abre automáticamente un segundo diálogo que invita a calificar la conversación con estrellas (1–5) con opción de omitir.  
 **Por qué:** Cerrar una conversación es una acción irreversible; sin confirmación es fácil hacerlo por accidente. Encadenar la calificación inmediatamente después del cierre —mientras la conversación está fresca— incrementa la tasa de calificaciones recibidas. Ambos diálogos respetan el sistema de diseño del proyecto para mantener la coherencia visual.
 
@@ -218,6 +222,7 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 | Filtros en Conversaciones: estado, canal, rating mín/máx, rango de fechas | ✅ |
 | Paginación en tabla de Conversaciones con selector de tamaño de página | ✅ |
 | Flujo de cierre con confirmación y calificación vía diálogos | ✅ |
+| Tooltip explicativo del cálculo de impacto en tabla de Analytics | ✅ |
 | 4 personalidades de agente con set-default por org | ✅ |
 | Analytics: KPIs, volumen, distribución de canales, ratings, peores prompts | ✅ |
 | Prometheus + Grafana auto-provisionados (local) | ✅ |
