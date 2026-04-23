@@ -58,6 +58,17 @@ resource "render_web_service" "backend" {
   }
 
   depends_on = [render_postgres.db]
+
+  lifecycle {
+    ignore_changes = [
+      maintenance_mode,
+      notification_override,
+      previews,
+      pull_request_previews_enabled,
+      root_directory,
+      slug,
+    ]
+  }
 }
 
 # --- Frontend (static site) ---

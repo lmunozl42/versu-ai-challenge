@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { useConversationsList } from "@/modules/conversations/use_cases/useConversationsList";
 import { ConversationsFilters } from "@/modules/conversations/components/ConversationsFilters";
+import { ConversationsPagination } from "@/modules/conversations/components/ConversationsPagination";
 import { ConvRow } from "@/modules/conversations/components/ConvRow";
 import { Button } from "@/commons/components/ui/button";
 import { Card, CardContent } from "@/commons/components/ui/card";
@@ -17,6 +18,7 @@ export default function ConversationsPage() {
           <h1 className="text-2xl font-bold">Conversaciones</h1>
           <p className="text-muted-foreground text-sm">
             {data.filtered.length} de {data.conversations.length} conversaciones
+            {data.pagination.totalPages > 1 && ` · página ${data.pagination.page} de ${data.pagination.totalPages}`}
           </p>
         </div>
         <Button onClick={() => data.createMut.mutate()} disabled={data.createMut.isPending}>
@@ -28,6 +30,8 @@ export default function ConversationsPage() {
       <ConversationsFilters
         statusFilter={data.statusFilter}
         setStatusFilter={data.setStatusFilter}
+        channelFilter={data.channelFilter}
+        setChannelFilter={data.setChannelFilter}
         minRating={data.minRating}
         setMinRating={data.setMinRating}
         maxRating={data.maxRating}
@@ -66,7 +70,7 @@ export default function ConversationsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.filtered.map((conv) => (
+                  {data.pagination.items.map((conv) => (
                     <ConvRow
                       key={conv.id}
                       conv={conv}
@@ -76,6 +80,14 @@ export default function ConversationsPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {!data.isLoading && data.filtered.length > 0 && (
+            <ConversationsPagination
+              pagination={data.pagination}
+              onPageChange={data.setPage}
+              pageSize={data.pageSize}
+              onPageSizeChange={data.setPageSize}
+            />
           )}
         </CardContent>
       </Card>

@@ -1,7 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/commons/components/ui/card";
 import { Input } from "@/commons/components/ui/input";
-import type { StatusFilter } from "@/services/conversationsService";
+import type { StatusFilter, ChannelFilter } from "@/services/conversationsService";
 
 const selectClass =
   "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring";
@@ -9,6 +9,8 @@ const selectClass =
 export function ConversationsFilters({
   statusFilter,
   setStatusFilter,
+  channelFilter,
+  setChannelFilter,
   minRating,
   setMinRating,
   maxRating,
@@ -22,6 +24,8 @@ export function ConversationsFilters({
 }: {
   statusFilter: StatusFilter;
   setStatusFilter: (v: StatusFilter) => void;
+  channelFilter: ChannelFilter;
+  setChannelFilter: (v: ChannelFilter) => void;
   minRating: number;
   setMinRating: (v: number) => void;
   maxRating: number;
@@ -51,7 +55,7 @@ export function ConversationsFilters({
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-muted-foreground">Estado</label>
             <select
@@ -62,6 +66,20 @@ export function ConversationsFilters({
               <option value="all">Todos</option>
               <option value="open">Abierta</option>
               <option value="closed">Cerrada</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Canal</label>
+            <select
+              className={selectClass}
+              value={channelFilter}
+              onChange={(e) => setChannelFilter(e.target.value as ChannelFilter)}
+            >
+              <option value="all">Todos</option>
+              <option value="web">Web</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="instagram">Instagram</option>
             </select>
           </div>
 

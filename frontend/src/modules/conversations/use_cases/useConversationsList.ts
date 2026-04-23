@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   getConversations,
   createConversation,
   filterConversations,
+  paginateConversations,
   hasActiveFilters,
   RATING_MIN,
   RATING_MAX,
+  PAGE_SIZE_OPTIONS,
   type StatusFilter,
+  type ChannelFilter,
+  type PageSize,
 } from "@/services/conversationsService";
 
 export function useConversationsList() {
@@ -16,10 +20,13 @@ export function useConversationsList() {
   const qc = useQueryClient();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [minRating, setMinRating] = useState(RATING_MIN);
   const [maxRating, setMaxRating] = useState(RATING_MAX);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(PAGE_SIZE_OPTIONS[0]);
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
@@ -37,16 +44,22 @@ export function useConversationsList() {
 
   const filtered = filterConversations(conversations, {
     statusFilter,
+    channelFilter,
     minRating,
     maxRating,
     dateFrom,
     dateTo,
   });
 
-  const filtersActive = hasActiveFilters({ statusFilter, minRating, maxRating, dateFrom, dateTo });
+  useEffect(() => { setPage(1); }, [statusFilter, channelFilter, minRating, maxRating, dateFrom, dateTo]);
+
+  const pagination = paginateConversations(filtered, page, pageSize);
+
+  const filtersActive = hasActiveFilters({ statusFilter, channelFilter, minRating, maxRating, dateFrom, dateTo });
 
   function clearFilters() {
     setStatusFilter("all");
+    setChannelFilter("all");
     setMinRating(RATING_MIN);
     setMaxRating(RATING_MAX);
     setDateFrom("");
@@ -56,10 +69,17 @@ export function useConversationsList() {
   return {
     conversations,
     filtered,
+    pagination,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
     isLoading,
     createMut,
     statusFilter,
     setStatusFilter,
+    channelFilter,
+    setChannelFilter,
     minRating,
     setMinRating,
     maxRating,
