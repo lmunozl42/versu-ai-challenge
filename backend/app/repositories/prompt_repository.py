@@ -63,7 +63,9 @@ class SQLPromptRepository(IPromptRepository):
             )
         )
         prompts = result.scalars().all()
-        target = next(p for p in prompts if p.id == prompt_id)
+        target = next((p for p in prompts if p.id == prompt_id), None)
+        if not target:
+            raise ValueError("Prompt not found")
         for p in prompts:
             p.is_default = p.id == prompt_id
         await self._session.commit()

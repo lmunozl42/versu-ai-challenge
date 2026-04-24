@@ -29,7 +29,7 @@ jobs:
         run: ruff check .
 
       - name: Type check with mypy
-        run: mypy app --ignore-missing-imports --no-strict-optional
+        run: mypy app
 
       - name: Build Docker image
         working-directory: .
@@ -63,4 +63,4 @@ jobs:
 
       - name: Build Docker image
         working-directory: .
-        run: docker build -f frontend/Dockerfile -t versu-frontend .
+        run: docker build -t versu-frontend frontend/

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 from random import choice, randint, uniform
+from typing import TypedDict
 
 from passlib.context import CryptContext
 from sqlalchemy import select
@@ -10,7 +11,28 @@ from app.infrastructure.models import Conversation, Message, Organization, Promp
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-ORGS = [
+
+class UserSeedData(TypedDict):
+    email: str
+    password: str
+    name: str
+    role: str
+    puesto: str
+
+
+class OrgSeedData(TypedDict):
+    name: str
+    slug: str
+    users: list[UserSeedData]
+
+
+class PromptSeedData(TypedDict):
+    name: str
+    content: str
+    is_default: bool
+
+
+ORGS: list[OrgSeedData] = [
     {
         "name": "Acme Corp",
         "slug": "acme",
@@ -30,7 +52,7 @@ ORGS = [
     },
 ]
 
-PROMPTS = [
+PROMPTS: list[PromptSeedData] = [
     {
         "name": "Asistente Amigable",
         "content": "Eres un asistente virtual amigable y empático. Respondes de forma cálida y accesible, usando un tono conversacional. Siempre buscas entender las necesidades del usuario antes de responder.",
@@ -87,8 +109,8 @@ async def run_seed(session: AsyncSession) -> None:
     now = datetime.now(timezone.utc)
 
     for org_data in ORGS:
-        result = await session.execute(select(Organization).where(Organization.slug == org_data["slug"]))
-        org = result.scalars().first()
+        org_result = await session.execute(select(Organization).where(Organization.slug == org_data["slug"]))
+        org = org_result.scalars().first()
 
         if not org:
             org = Organization(
@@ -101,8 +123,8 @@ async def run_seed(session: AsyncSession) -> None:
             await session.flush()
 
         for u in org_data["users"]:
-            result = await session.execute(select(User).where(User.email == u["email"]))
-            existing_user = result.scalars().first()
+            user_result = await session.execute(select(User).where(User.email == u["email"]))
+            existing_user = user_result.scalars().first()
 
             if existing_user:
                 existing_user.role = u["role"]
@@ -119,10 +141,10 @@ async def run_seed(session: AsyncSession) -> None:
                     created_at=now,
                 ))
 
-        existing_prompts = await session.execute(
+        prompt_result = await session.execute(
             select(Prompt).where(Prompt.org_id == org.id, Prompt.is_active)
         )
-        if not existing_prompts.scalars().first():
+        if not prompt_result.scalars().first():
             for prompt_data in PROMPTS:
                 session.add(
                     Prompt(
