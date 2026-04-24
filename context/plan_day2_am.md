@@ -35,7 +35,7 @@ CI passing on GitHub, Terraform files ready for deploy.
 
 - [x] `broadcast_new_conversation()` in `app/resources/ws.py`
 - [x] Called from `POST /conversations` after DB commit
-- [ ] **UNVERIFIED: ConversationsPage frontend does NOT appear to subscribe to this event** — needs investigation
+- [~] ConversationsPage uses polling (refetchInterval: 15s) — WS broadcast not consumed at list level (documented in README as not implemented)
 
 ---
 
@@ -45,7 +45,7 @@ CI passing on GitHub, Terraform files ready for deploy.
 - [x] Backend: ruff lint + Docker build
 - [x] Frontend: `tsc --noEmit` + `npm run build`
 - [x] Uses `npm install` (not `npm ci`) — Windows lock file missing Linux-specific packages
-- [ ] **MISSING: CI status badge in README**
+- [x] CI status badge in README (line 3)
 
 ---
 
@@ -54,8 +54,8 @@ CI passing on GitHub, Terraform files ready for deploy.
 - [x] `infra/terraform/main.tf` — Render web service + static site + managed PostgreSQL
 - [x] `infra/terraform/variables.tf`
 - [x] `infra/terraform/terraform.tfvars.example`
-- [ ] **NOT DONE: `terraform apply` has NOT been run** — requires user's Render API key + owner ID
-- [ ] **NOT DONE: no live URL exists** — challenge requires a functional deployed URL in README (20% of grade)
+- [x] `terraform apply` run — Render services provisioned
+- [x] Live URL deployed and in README: https://versu-frontend.onrender.com/
 
 ---
 
@@ -72,4 +72,4 @@ CI passing on GitHub, Terraform files ready for deploy.
 
 ---
 
-## Status: ⚠️ Infra code complete — deploy and CI badge still pending
+## Status: ✅ Complete

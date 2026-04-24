@@ -32,12 +32,15 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        <p className="text-sm text-white/70 hidden sm:block">{user?.organization?.name}</p>
+        <div className="hidden sm:flex flex-col items-end">
+          <p className="text-sm text-white/70 leading-none">{user?.organization?.name}</p>
+          <p className="text-xs text-white/40 mt-0.5">{user?.name}</p>
+        </div>
 
         <div className="relative" ref={ref}>
           <button
             onClick={() => setOpen((v) => !v)}
-            className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center font-semibold text-sm transition-colors"
+            className="h-9 w-9 rounded-full bg-blue-500 hover:bg-blue-400 text-white flex items-center justify-center font-semibold text-sm transition-colors"
           >
             {initial}
           </button>

@@ -37,6 +37,27 @@ async def broadcast_new_conversation(org_id: str, payload: dict) -> None:
         _unregister(org_id, ws)
 
 
+@router.websocket("/ws/presence")
+async def presence_ws(websocket: WebSocket, token: str):
+    """Org-level broadcast listener — no chat, just receives new_conversation events."""
+    await websocket.accept()
+
+    payload = decode_token(token)
+    org_id = payload.get("org_id") if payload else None
+    if not org_id:
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+
+    _register(org_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        _unregister(org_id, websocket)
+
+
 @router.websocket("/ws/conversations/{conversation_id}")
 async def conversation_ws(websocket: WebSocket, conversation_id: uuid.UUID, token: str):
     await websocket.accept()

@@ -41,6 +41,20 @@ Dashboard de análisis de conversaciones de IA para operaciones de Customer Succ
 └─────────────┘                  └──────────────┘            └──────────┘
 ```
 
+### Arquitectura modular — Frontend
+
+```
+pages → modules → services → infra/repositories
+```
+
+| Capa | Carpeta | Responsabilidad |
+|------|---------|-----------------|
+| Páginas | `pages/` | Componentes de ruta, orquestan módulos |
+| Módulos | `modules/<dominio>/` | `use_cases/` (hooks) + `components/` por feature |
+| Servicios | `services/` | Lógica de dominio pura + hooks WebSocket |
+| Infra | `infra/repositories/` | Clientes HTTP axios, uno por entidad |
+| Comunes | `commons/` | AuthContext, primitivos UI, layout compartido |
+
 ### Clean Architecture — Backend
 
 El backend sigue una arquitectura limpia con capas bien definidas y dependencias unidireccionales:
@@ -166,55 +180,43 @@ El dashboard de Grafana se provisiona automáticamente al levantar el contenedor
 
 ## Mejoras UX/UI
 
-Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con su justificación documentada.
+Cambios realizados respecto al mockup entregado, con su justificación.
 
-### 1. Navbar fija con nombre de org, avatar de usuario y menú de perfil
-**Qué:** Se agregó una navbar superior que muestra el nombre de la organización autenticada de forma persistente. A la derecha hay un avatar circular con la inicial del usuario que al hacer click despliega un menú con el nombre, email, acceso al perfil y la opción de cerrar sesión.  
-**Por qué:** El mockup no incluía un mecanismo para cerrar sesión ni información del usuario activo. El modelo de datos contempla múltiples usuarios por organización, por lo que es importante distinguir quién está autenticado en todo momento. El dropdown de avatar es el patrón estándar en productos SaaS multi-usuario: mantiene la interfaz limpia sin sacrificar accesibilidad al perfil ni al logout.
+### 1. Navbar con org, usuario y menú de perfil
+El mockup no incluía logout ni identidad del usuario activo. Se agregó una navbar con el nombre de la org y del usuario visibles de forma persistente, más un avatar que despliega acceso al perfil y logout. Los datos de perfil (nombre, email, puesto, rol) se movieron a una página dedicada — mezclarlos en Configuración confundiría responsabilidades en un modelo multi-usuario.
 
 ### 2. Selector de período en el gráfico de volumen (Hoy / Semana / Mes)
-**Qué:** El gráfico de volumen de conversaciones en Resumen ahora tiene tres vistas seleccionables: Hoy (por hora, 0–23h), Semana (últimos 7 días por nombre de día) y Mes (últimos 30 días).  
-**Por qué:** El mockup original solo mostraba una vista semanal. Un período fijo limita la capacidad del analista para detectar patrones intradía (e.g. horas pico) o tendencias a largo plazo. El selector agrega valor analítico significativo con mínima complejidad visual.
+El mockup solo mostraba la vista semanal. Se agregaron vistas por hora (Hoy) y por mes para que el analista pueda detectar patrones intradía o tendencias de largo plazo sin cambiar de página.
 
-### 3. Sidebar colapsable con menú hamburguesa
-**Qué:** La sidebar puede colapsarse mediante un ícono de hamburguesa, ocultando las etiquetas de navegación y dando más espacio horizontal al área de contenido.  
-**Por qué:** El mockup mostraba una sidebar permanentemente expandida. En pantallas más pequeñas o al revisar tablas y gráficos anchos, una sidebar de ancho fijo reduce el espacio disponible. Una sidebar colapsable es un patrón estándar en dashboards de analítica y mejora la usabilidad en distintos tamaños de pantalla.
+### 3. Sidebar colapsable
+Una sidebar fija consume espacio horizontal innecesario al revisar tablas o gráficos anchos. El ícono hamburguesa la colapsa a solo íconos, patrón estándar en dashboards analíticos.
 
-### 4. Filtro de fecha dividido en "Desde" y "Hasta"
-**Qué:** El filtro de fecha en Conversaciones se dividió en dos inputs independientes: fecha de inicio (Desde) y fecha de fin (Hasta).  
-**Por qué:** El mockup mostraba un único selector de fecha. Un solo campo solo permite filtrar por un día exacto, imposibilitando el análisis de rangos de tiempo. Dos inputs independientes permiten al analista definir cualquier ventana arbitraria (e.g. último trimestre, una semana de incidente específica) sin restricciones.
+### 4. Filtro de fecha con rango "Desde / Hasta"
+Un único selector de fecha solo permite filtrar por día exacto. Dos inputs independientes permiten definir cualquier ventana arbitraria (e.g. último trimestre).
 
 ### 5. Filtro de rating con rango mínimo/máximo y validación cruzada
-**Qué:** El filtro de rating se dividió en dos dropdowns separados — Rating mínimo y Rating máximo. Una regla de validación cruzada impide que el mínimo supere al máximo y viceversa: seleccionar un mínimo mayor al máximo actual ajusta automáticamente el máximo, y seleccionar un máximo menor al mínimo actual ajusta el mínimo.  
-**Por qué:** El mockup mostraba un único filtro de rating. Un filtro de rango es más útil para el análisis (e.g. "ratings entre 2 y 4"). La validación cruzada evita un estado de filtro imposible que silenciosamente retornaría cero resultados, confundiendo al analista haciéndole creer que no hay datos.
+Un filtro de rango es más útil que un único valor (e.g. "ratings entre 2 y 4"). La validación cruzada evita un estado imposible que retornaría cero resultados en silencio, confundiendo al analista.
 
-### 6. Columna de cantidad de mensajes en la tabla de Conversaciones
-**Qué:** Se agregó una columna Mensajes a la tabla de conversaciones que muestra el total de mensajes intercambiados en cada conversación.  
-**Por qué:** La cantidad de mensajes es un indicador directo de la complejidad y el nivel de engagement de una conversación. El analista puede identificar rápidamente conversaciones que escalaron (muchos mensajes) versus las resueltas de inmediato (pocos mensajes), sin necesidad de abrir cada una.
+### 6. Columna de cantidad de mensajes en Conversaciones
+Permite identificar de un vistazo conversaciones que escalaron (muchos mensajes) versus las resueltas rápido, sin necesidad de abrirlas.
 
-### 7. Ícono de ojo en la columna de Acciones en lugar de botón de texto
-**Qué:** El botón de texto "Ver" en la columna Acciones fue reemplazado por un ícono de ojo.  
-**Por qué:** Un botón de texto ocupa espacio horizontal considerable y escala mal cuando se agregan acciones adicionales. Las columnas de acciones basadas en íconos son un patrón estándar en tablas de datos: cada acción tiene un ícono pequeño con tooltip, manteniendo la tabla compacta y consistente sin importar cuántas acciones estén presentes. Esto hace el diseño extensible para acciones futuras (e.g. eliminar, exportar) sin rediseñar la columna.
+### 7. Ícono de ojo en columna de Acciones
+Reemplaza el botón de texto "Ver". Los íconos mantienen la tabla compacta y el diseño extensible para acciones futuras sin rediseñar la columna.
 
-### 8. Paginación en la tabla de Conversaciones con selector de tamaño de página
-**Qué:** Se agregó paginación a la tabla de conversaciones con opciones de 10, 20 o 50 filas por página, mostrando el rango visible ("1–10 de 47") y navegación por páginas con elipsis inteligente.  
-**Por qué:** Renderizar todas las conversaciones sin paginar degrada el rendimiento percibido y hace difícil explorar la lista. La paginación mantiene la tabla manejable independientemente del volumen de datos, mientras que el selector de tamaño de página le da al analista control sobre la densidad de información según sus preferencias.
+### 8. Paginación con selector de tamaño de página
+Renderizar todas las conversaciones sin paginar degrada el rendimiento. Se agregaron opciones de 10/20/50 filas y navegación con elipsis inteligente ("1–10 de 47").
 
-### 9. Filtro por canal en la tabla de Conversaciones
-**Qué:** Se añadió un dropdown de filtrado por canal (Web, WhatsApp, Instagram) junto a los filtros existentes de estado, rating y fecha.  
-**Por qué:** El canal es una dimensión clave para segmentar conversaciones. Un analista que gestiona el canal de WhatsApp, por ejemplo, solo necesita ver ese subset. Sin este filtro tendría que revisar toda la tabla e identificar visualmente las filas relevantes.
+### 9. Filtro por canal
+Permite al analista segmentar por Web, WhatsApp o Instagram directamente desde la tabla, sin tener que identificar las filas relevantes de forma visual.
 
-### 10. Menú de usuario en el navbar con dropdown de perfil
-**Qué:** El nombre de usuario y el botón de logout del navbar fueron reemplazados por un avatar circular con la inicial del usuario. Al hacer click se despliega un menú con el nombre, email y la opción de cerrar sesión. El nombre de la organización se muestra de forma persistente junto al avatar. La información de usuario fue removida de la página de Configuración, que ahora solo contiene datos de la organización y del agente de IA.  
-**Por qué:** El enunciado contempla que una organización puede tener múltiples usuarios. En ese modelo, los datos de perfil (nombre, email, ID de usuario) son información del usuario autenticado, no de la organización — mezclarlos en la pantalla de Configuración del dashboard genera confusión de responsabilidades. El dropdown en el navbar es el patrón estándar en SaaS multi-usuario: el perfil está siempre accesible pero no ocupa espacio en las vistas operativas.
+### 10. Tooltip del cálculo de impacto en Analytics
+La fórmula `(5 − rating promedio) × conversaciones` se muestra en un tooltip al hacer hover sobre la columna Impacto. Una métrica derivada sin contexto genera desconfianza; el tooltip la contextualiza en el punto de uso.
 
-### 11. Tooltip explicativo del cálculo de impacto en Analytics
-**Qué:** La columna "Impacto" de la tabla Top 5 Prompts incluye un ícono de información (ℹ) que al hacer hover muestra un tooltip con la fórmula de cálculo: `(5 − rating promedio) × conversaciones`, y una descripción de su significado.  
-**Por qué:** Una métrica derivada sin explicación puede confundir o generar desconfianza en el analista. El tooltip contextualiza el número directamente en el punto de uso, sin requerir documentación externa ni sobrecargar la interfaz con texto permanente.
+### 11. Botón para limpiar filtros en Conversaciones
+Cuando hay filtros activos, aparece un botón "Limpiar filtros" que los restablece todos a sus valores por defecto en un solo click. Sin él, el analista tendría que resetear cada dropdown e input manualmente.
 
-### 11. Flujo de cierre de conversación con confirmación y calificación
-**Qué:** El botón "Cerrar conversación" abre un diálogo de confirmación (SweetAlert2) antes de ejecutar el cierre. Al confirmar, una vez procesado el cierre, se abre automáticamente un segundo diálogo que invita a calificar la conversación con estrellas (1–5) con opción de omitir.  
-**Por qué:** Cerrar una conversación es una acción irreversible; sin confirmación es fácil hacerlo por accidente. Encadenar la calificación inmediatamente después del cierre —mientras la conversación está fresca— incrementa la tasa de calificaciones recibidas. Ambos diálogos respetan el sistema de diseño del proyecto para mantener la coherencia visual.
+### 12. Flujo de cierre con confirmación y calificación
+Cerrar una conversación es irreversible. Un diálogo de confirmación evita cierres accidentales. Al confirmar, se encadena automáticamente un segundo diálogo de calificación (1–5 estrellas), aprovechando el momento en que la conversación está fresca para aumentar la tasa de ratings.
 
 ## Herramientas de IA utilizadas
 
@@ -243,14 +245,9 @@ Los siguientes cambios se realizaron respecto al mockup entregado, cada uno con 
 | Prometheus + Grafana auto-provisionados (local) | ✅ |
 | CI: ruff lint + tsc + Docker build en GitHub Actions | ✅ |
 | IaC con Terraform + deploy en Render | ✅ |
+| Actualizaciones en tiempo real en lista de Conversaciones vía `/ws/presence` | ✅ |
 | Clean architecture backend (resources → application → interfaces ← repositories) | ✅ |
 | Mejoras UX documentadas respecto al mockup | ✅ |
-
-### No implementado por tiempo
-
-| Requisito | Notas |
-|-----------|-------|
-| Actualizaciones en tiempo real en la lista de Conversaciones | La lista usa polling cada 15 s; el broadcast WebSocket llega solo a clientes dentro de un chat activo |
 
 ## CI/CD
 
@@ -301,14 +298,17 @@ versu-ai-challenge/
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── commons/        # AuthContext, utils, componentes UI y layout compartidos
-│   │   ├── infra/          # repositorios HTTP (clientes axios por entidad)
-│   │   ├── services/       # lógica de negocio frontend + WebSocket hook
-│   │   ├── modules/        # módulos por dominio (summary, conversations, chat, analytics, settings)
-│   │   │   └── <módulo>/
-│   │   │       ├── use_cases/    # hooks de caso de uso
-│   │   │       └── components/   # componentes del módulo
-│   │   └── pages/          # Resumen, Conversaciones, Analytics, Configuración
+│   │   ├── commons/              # AuthContext, UI primitives (button, card…), layout (Navbar, Sidebar)
+│   │   ├── infra/
+│   │   │   └── repositories/     # clientes HTTP axios por entidad (auth, conversations, analytics, prompts)
+│   │   ├── services/             # lógica de dominio + hooks WS (useConversationWS, useOrgBroadcast)
+│   │   ├── modules/              # módulos por dominio — cada uno con use_cases/ y components/
+│   │   │   ├── summary/
+│   │   │   ├── conversations/
+│   │   │   ├── chat/
+│   │   │   ├── analytics/
+│   │   │   └── settings/
+│   │   └── pages/                # componentes de ruta (uno por vista)
 │   └── Dockerfile
 ├── infra/
 │   ├── prometheus/         # prometheus.yml

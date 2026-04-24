@@ -35,8 +35,8 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center shrink-0 overflow-hidden">
-              <span className="text-primary-foreground font-bold text-2xl">{initial}</span>
+            <div className="h-16 w-16 rounded-full bg-blue-500 flex items-center justify-center shrink-0 overflow-hidden">
+              <span className="text-white font-bold text-2xl">{initial}</span>
             </div>
             <div>
               <h3 className="text-lg font-semibold">{user.name}</h3>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOrgBroadcast } from "@/services/useOrgBroadcast";
 import { useNavigate } from "react-router-dom";
 import {
   getConversations,
@@ -18,6 +19,7 @@ import {
 export function useConversationsList() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  useOrgBroadcast();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
@@ -31,7 +33,7 @@ export function useConversationsList() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
     queryFn: getConversations,
-    refetchInterval: 15_000,
+    refetchInterval: 60_000,
   });
 
   const createMut = useMutation({
