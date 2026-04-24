@@ -121,11 +121,20 @@ class SQLConversationRepository(IConversationRepository):
     async def add_message(
         self,
         conversation_id: UUID,
+        org_id: UUID,
         role: str,
         content: str,
         response_time_ms: int | None = None,
         prompt_used: str | None = None,
     ) -> Message:
+        conv = await self._session.execute(
+            select(ConversationORM.id).where(
+                ConversationORM.id == conversation_id,
+                ConversationORM.org_id == org_id,
+            )
+        )
+        if not conv.scalars().first():
+            raise ValueError("Conversation not found")
         msg = MessageORM(
             id=uuid.uuid4(),
             conversation_id=conversation_id,
@@ -140,10 +149,14 @@ class SQLConversationRepository(IConversationRepository):
         await self._session.refresh(msg)
         return _map_message(msg)
 
-    async def get_recent_messages(self, conversation_id: UUID, limit: int = 10) -> list[Message]:
+    async def get_recent_messages(self, conversation_id: UUID, org_id: UUID, limit: int = 10) -> list[Message]:
         result = await self._session.execute(
             select(MessageORM)
-            .where(MessageORM.conversation_id == conversation_id)
+            .join(ConversationORM, MessageORM.conversation_id == ConversationORM.id)
+            .where(
+                MessageORM.conversation_id == conversation_id,
+                ConversationORM.org_id == org_id,
+            )
             .order_by(MessageORM.created_at.desc())
             .limit(limit)
         )

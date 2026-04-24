@@ -28,6 +28,9 @@ jobs:
       - name: Lint with ruff
         run: ruff check .
 
+      - name: Type check with mypy
+        run: mypy app --ignore-missing-imports --no-strict-optional
+
       - name: Build Docker image
         working-directory: .
         run: docker build -f backend/Dockerfile -t versu-backend .
@@ -57,3 +60,7 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Build Docker image
+        working-directory: .
+        run: docker build -f frontend/Dockerfile -t versu-frontend .

@@ -27,9 +27,9 @@ class StreamAIResponseUseCase:
         user_content: str,
         on_token: Callable[[str], Awaitable[None]],
     ) -> str:
-        await self._conv_repo.add_message(conversation_id, "user", user_content)
+        await self._conv_repo.add_message(conversation_id, org_id, "user", user_content)
 
-        history = await self._conv_repo.get_recent_messages(conversation_id, limit=10)
+        history = await self._conv_repo.get_recent_messages(conversation_id, org_id, limit=10)
         default_prompt = await self._prompt_repo.get_default_by_org(org_id)
         system_prompt = default_prompt.content if default_prompt else _FALLBACK_PROMPT
 
@@ -59,6 +59,7 @@ class StreamAIResponseUseCase:
 
         ai_msg = await self._conv_repo.add_message(
             conversation_id,
+            org_id,
             "ai",
             full_response,
             response_time_ms=response_time_ms,

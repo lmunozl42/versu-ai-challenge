@@ -24,6 +24,7 @@ class IConversationRepository(ABC):
     async def add_message(
         self,
         conversation_id: UUID,
+        org_id: UUID,
         role: str,
         content: str,
         response_time_ms: int | None = None,
@@ -31,4 +32,4 @@ class IConversationRepository(ABC):
     ) -> Message: ...
 
     @abstractmethod
-    async def get_recent_messages(self, conversation_id: UUID, limit: int = 10) -> list[Message]: ...
+    async def get_recent_messages(self, conversation_id: UUID, org_id: UUID, limit: int = 10) -> list[Message]: ...

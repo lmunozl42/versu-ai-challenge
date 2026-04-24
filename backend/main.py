@@ -36,9 +36,7 @@ app.include_router(prompts_router)
 app.include_router(analytics_router)
 app.include_router(ws_router)
 
-@app.on_event("startup")
-async def startup():
-    Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 @app.get("/health")
 async def health():
