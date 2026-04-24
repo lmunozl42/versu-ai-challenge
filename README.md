@@ -55,6 +55,8 @@ pages → modules → services → infra/repositories
 | Infra | `infra/repositories/` | Clientes HTTP axios, uno por entidad |
 | Comunes | `commons/` | AuthContext, primitivos UI, layout compartido |
 
+Cada módulo expone sus casos de uso como hooks de React (`use_cases/`), separando la lógica de negocio (queries, mutaciones, estado derivado) de los componentes visuales. Esto permite que un componente sea reemplazado o rediseñado sin tocar la lógica, y que la lógica sea testeada de forma independiente. Es el mismo principio de separación de responsabilidades que el backend aplica con sus use cases, adaptado al modelo mental de React.
+
 ### Clean Architecture — Backend
 
 El backend sigue una arquitectura limpia con capas bien definidas y dependencias unidireccionales:
@@ -159,7 +161,10 @@ PATCH  /conversations/{id}/rate       → calificar (1-5)
 WS     /ws/conversations/{id}?token=  → streaming IA
 
 GET    /prompts                       → listar personalidades
+POST   /prompts                       → crear personalidad
+PUT    /prompts/{id}                  → editar nombre/contenido
 PATCH  /prompts/{id}/set-default      → activar prompt
+DELETE /prompts/{id}                  → eliminar (soft delete)
 
 GET    /analytics                     → KPIs + gráficos + peores prompts
 
@@ -248,6 +253,13 @@ Cerrar una conversación es irreversible. Un diálogo de confirmación evita cie
 | Actualizaciones en tiempo real en lista de Conversaciones vía `/ws/presence` | ✅ |
 | Clean architecture backend (resources → application → interfaces ← repositories) | ✅ |
 | Mejoras UX documentadas respecto al mockup | ✅ |
+
+## Propuestas de mejora a futuro
+
+- **Autoría de mensajes en el chat**: registrar qué usuario de la organización envió cada mensaje y mostrarlo en los globos de conversación. Actualmente todos los mensajes de usuario se atribuyen al usuario autenticado en ese momento; con este cambio, al revisar una conversación creada por otro miembro del equipo los globos mostrarían su nombre e inicial en lugar del del observador. Requiere agregar `user_id` a la tabla `messages`, una migración Alembic y actualizar el schema de respuesta y los componentes de chat.
+- **Auditoría de personalidades del agente**: registrar qué usuario editó cada personalidad y cuándo, y mantener un historial de cambios de prompt predeterminado (quién lo cambió y a qué hora). Requiere una tabla de auditoría y un campo `updated_by` en el modelo.
+- **KPIs configurables en el Resumen**: permitir al analista elegir qué métricas se muestran en las tarjetas del dashboard (por ejemplo, ocultar tiempo de respuesta y mostrar tasa de cierre en su lugar). Requiere persistir las preferencias por usuario o por organización.
+- **Exportación de datos**: permitir descargar la tabla de conversaciones y las métricas de Analytics en formato CSV. Esencial para analistas que generan reportes periódicos para equipos de producto o ventas sin necesidad de acceder directamente a la base de datos.
 
 ## CI/CD
 

@@ -1,0 +1,12 @@
+from uuid import UUID
+
+from app.entities.prompt import Prompt
+from app.interfaces.prompt_repository import IPromptRepository
+
+
+class CreatePromptUseCase:
+    def __init__(self, repo: IPromptRepository):
+        self._repo = repo
+
+    async def execute(self, org_id: UUID, name: str, content: str) -> Prompt:
+        return await self._repo.create(org_id, name, content)

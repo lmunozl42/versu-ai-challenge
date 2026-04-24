@@ -18,3 +18,17 @@ export async function patchSetDefaultPrompt(id: string): Promise<Prompt> {
   const { data } = await client.patch<Prompt>(`/prompts/${id}/set-default`);
   return data;
 }
+
+export async function postPrompt(name: string, content: string): Promise<Prompt> {
+  const { data } = await client.post<Prompt>("/prompts", { name, content });
+  return data;
+}
+
+export async function putPrompt(id: string, name: string, content: string): Promise<Prompt> {
+  const { data } = await client.put<Prompt>(`/prompts/${id}`, { name, content });
+  return data;
+}
+
+export async function deletePrompt(id: string): Promise<void> {
+  await client.delete(`/prompts/${id}`);
+}

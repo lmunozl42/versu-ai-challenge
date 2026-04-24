@@ -1,3 +1,4 @@
+import uuid as _uuid
 from uuid import UUID
 
 from sqlalchemy import select
@@ -68,3 +69,54 @@ class SQLPromptRepository(IPromptRepository):
         await self._session.commit()
         await self._session.refresh(target)
         return _map_prompt(target)
+
+    async def create(self, org_id: UUID, name: str, content: str) -> Prompt:
+        orm = PromptORM(
+            id=_uuid.uuid4(),
+            org_id=org_id,
+            name=name,
+            content=content,
+            is_default=False,
+            is_active=True,
+        )
+        self._session.add(orm)
+        await self._session.commit()
+        await self._session.refresh(orm)
+        return _map_prompt(orm)
+
+    async def update(self, prompt_id: UUID, org_id: UUID, name: str | None, content: str | None) -> Prompt:
+        result = await self._session.execute(
+            select(PromptORM).where(
+                PromptORM.id == prompt_id,
+                PromptORM.org_id == org_id,
+                PromptORM.is_active,
+            )
+        )
+        orm = result.scalars().first()
+        if not orm:
+            raise ValueError("Prompt not found")
+        if name is not None:
+            orm.name = name
+        if content is not None:
+            orm.content = content
+        await self._session.commit()
+        await self._session.refresh(orm)
+        return _map_prompt(orm)
+
+    async def delete(self, prompt_id: UUID, org_id: UUID) -> None:
+        result = await self._session.execute(
+            select(PromptORM).where(
+                PromptORM.org_id == org_id,
+                PromptORM.is_active,
+            )
+        )
+        active = result.scalars().all()
+        target = next((p for p in active if p.id == prompt_id), None)
+        if not target:
+            raise ValueError("Prompt not found")
+        if target.is_default:
+            raise ValueError("Cannot delete the default prompt")
+        if len(active) <= 1:
+            raise ValueError("Cannot delete the last prompt")
+        target.is_active = False
+        await self._session.commit()

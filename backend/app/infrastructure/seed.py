@@ -119,18 +119,22 @@ async def run_seed(session: AsyncSession) -> None:
                     created_at=now,
                 ))
 
-        for prompt_data in PROMPTS:
-            session.add(
-                Prompt(
-                    id=uuid.uuid4(),
-                    org_id=org.id,
-                    name=prompt_data["name"],
-                    content=prompt_data["content"],
-                    is_default=prompt_data["is_default"],
-                    is_active=True,
-                    created_at=now,
+        existing_prompts = await session.execute(
+            select(Prompt).where(Prompt.org_id == org.id, Prompt.is_active)
+        )
+        if not existing_prompts.scalars().first():
+            for prompt_data in PROMPTS:
+                session.add(
+                    Prompt(
+                        id=uuid.uuid4(),
+                        org_id=org.id,
+                        name=prompt_data["name"],
+                        content=prompt_data["content"],
+                        is_default=prompt_data["is_default"],
+                        is_active=True,
+                        created_at=now,
+                    )
                 )
-            )
 
         for i in range(20):
             created_at = now - timedelta(days=randint(0, 29), hours=randint(0, 23))
